@@ -1,0 +1,45 @@
+name: Build IW5v
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        configuration: [Release, Debug]
+
+    steps:
+      - name: Checkout (with submodules)
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Generate Visual Studio solution
+        shell: cmd
+        run: tools\premake5.exe vs2019
+
+      - name: Build
+        shell: cmd
+        run: >
+          msbuild build\open-iw5.sln
+          /m
+          /p:Configuration=${{ matrix.configuration }}
+          /p:Platform=x32
+          /p:PlatformToolset=v143
+
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: IW5v-${{ matrix.configuration }}
+          path: |
+            build/bin/x32/${{ matrix.configuration }}/*.exe
+            build/bin/x32/${{ matrix.configuration }}/*.pdb
+          if-no-files-found: error
