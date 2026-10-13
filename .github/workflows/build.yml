@@ -28,11 +28,14 @@ jobs:
 
       - name: Build
         shell: cmd
+        # Solution is generated as build\open-iw5.sln, platform Win32 (32-bit).
+        # The generated projects target the v142 toolset (VS2019); windows-latest
+        # ships VS2022, so override to v143.
         run: >
           msbuild build\open-iw5.sln
           /m
           /p:Configuration=${{ matrix.configuration }}
-          /p:Platform=x32
+          /p:Platform=Win32
           /p:PlatformToolset=v143
 
       - name: Upload build output
@@ -40,6 +43,6 @@ jobs:
         with:
           name: IW5v-${{ matrix.configuration }}
           path: |
-            build/bin/x32/${{ matrix.configuration }}/*.exe
-            build/bin/x32/${{ matrix.configuration }}/*.pdb
+            build/bin/**/${{ matrix.configuration }}/*.exe
+            build/bin/**/${{ matrix.configuration }}/*.pdb
           if-no-files-found: error
